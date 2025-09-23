@@ -19,14 +19,54 @@ bincode = { workspace = true }
 sha2 = { workspace = true }
 rand = { workspace = true }
 tokio = { workspace = true }
-uuid = { workspace = true }
 chrono = { workspace = true }
 
-# Rust 1.89 特性支持
+# 区块链专用依赖
+secp256k1 = "0.31"
+ed25519-dalek = "2.1"
+blake2 = "0.10"
+hex = "0.4"
+ripemd = "0.2.0-rc.1"
+
+# CLI 支持
+clap = { version = "4.4", features = ["derive"] }
+uuid = { version = "1.6", features = ["v4"] }
+
+# 网络和异步
+tokio-tungstenite = { version = "0.24", optional = true }
+async-trait = "0.1"
+futures = "0.3"
+crossbeam-channel = { version = "0.5", optional = true }
+parking_lot = "0.12"
+rayon = "1.8"
+
+# 数据库支持
+sled = { version = "0.34", optional = true }
+rocksdb = { version = "0.22", optional = true }
+
+# 序列化增强
+rmp-serde = "1.1"
+cbor4ii = "1.1"
+
+# 密码学增强
+ring = { version = "0.17", optional = true }
+aes-gcm = { version = "0.10", optional = true }
+chacha20poly1305 = { version = "0.10", optional = true }
+
+# 智能合约支持 (暂时注释掉，等待依赖版本兼容)
+# wasmtime = { version = "20.0", optional = true }
+# wasmer = { version = "4.4", optional = true }
+
+# Rust 1.89+ 特性支持
 [features]
-default = []
+default = ["basic"]
+basic = []  # 基础区块链功能
+advanced = ["ffi", "smart-contracts", "p2p", "database"]  # 高级功能
 ffi = []  # 启用 FFI 功能
-advanced = ["ffi"]  # 高级功能
+smart-contracts = []  # 智能合约支持 (暂时禁用 WASM 运行时)
+p2p = ["tokio-tungstenite", "crossbeam-channel"]  # P2P 网络
+database = ["sled", "rocksdb"]  # 数据库支持
+crypto-advanced = ["ring", "aes-gcm", "chacha20poly1305"]  # 高级密码学
 
 # 开发依赖
 [dev-dependencies]
@@ -41,3 +81,36 @@ path = "examples/basic_blockchain.rs"
 [[example]]
 name = "rust_189_demo"
 path = "examples/rust_189_demo.rs"
+
+[[example]]
+name = "advanced_blockchain"
+path = "examples/advanced_blockchain.rs"
+
+[[example]]
+name = "demo"
+path = "examples/demo.rs"
+
+[[example]]
+name = "full_demo"
+path = "examples/full_demo.rs"
+
+[[example]]
+name = "simple_demo"
+path = "examples/simple_demo.rs"
+
+[[example]]
+name = "consensus_demo"
+path = "examples/consensus_demo.rs"
+
+[[example]]
+name = "smart_contract_demo"
+path = "examples/smart_contract_demo.rs"
+required-features = ["smart-contracts"]
+
+[[example]]
+name = "performance_demo"
+path = "examples/performance_demo.rs"
+
+[[example]]
+name = "security_demo"
+path = "examples/security_demo.rs"

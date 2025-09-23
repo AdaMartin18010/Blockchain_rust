@@ -17,6 +17,30 @@ pub struct BlockHash<const N: usize = 32> {
     pub data: [u8; N],
 }
 
+impl<const N: usize> serde::Serialize for BlockHash<N> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_bytes(&self.data)
+    }
+}
+
+impl<'de, const N: usize> serde::Deserialize<'de> for BlockHash<N> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let bytes: Vec<u8> = serde::Deserialize::deserialize(deserializer)?;
+        if bytes.len() != N {
+            return Err(serde::de::Error::invalid_length(bytes.len(), &"exactly N bytes"));
+        }
+        let mut data = [0u8; N];
+        data.copy_from_slice(&bytes);
+        Ok(BlockHash { data })
+    }
+}
+
 impl<const N: usize> BlockHash<N> {
     /// 从数据创建哈希
     /// Create hash from data
@@ -125,7 +149,7 @@ pub struct ValidationResult {
 
 /// 区块链区块结构
 /// Blockchain block structure
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Block {
     pub index: u64,
     pub prev_hash: BlockHash<32>,
@@ -166,7 +190,7 @@ impl Block {
 
     /// 计算区块哈希
     /// Calculate block hash
-    fn calculate_hash(&self) -> BlockHash<32> {
+    pub fn calculate_hash(&self) -> BlockHash<32> {
         let mut hasher = Sha256::new();
         hasher.update(self.index.to_le_bytes());
         hasher.update(self.prev_hash.data);
@@ -243,7 +267,7 @@ impl Block {
 
 /// 区块链结构
 /// Blockchain structure
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Blockchain {
     pub chain: Vec<Block>,
     pub pending_transactions: Vec<Transaction>,
@@ -342,7 +366,7 @@ impl Blockchain {
 
     /// 更新余额
     /// Update balances
-    fn update_balances(&mut self) {
+    pub fn update_balances(&mut self) {
         if let Some(last_block) = self.chain.last() {
             for tx in &last_block.transactions {
                 // 减少发送者余额

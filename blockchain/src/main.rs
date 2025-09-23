@@ -9,25 +9,48 @@ mod simple_blockchain;
 mod smart_contract;
 mod tools;
 mod types;
+mod monitoring;
+mod cli;
+mod consensus;
+mod performance;
+mod security;
+
+// 新增的高级模块
+#[cfg(feature = "crypto-advanced")]
+mod advanced_cryptography_simple;
+
+#[cfg(feature = "smart-contracts")]
+mod smart_contract_engine;
+
+#[cfg(feature = "p2p")]
+mod p2p_network;
+
+#[cfg(feature = "database")]
+mod database;
+
+mod web_api;
 
 use simple_blockchain::*;
 use std::io::{self, Write};
 
 fn main() {
-    println!("🚀 区块链应用演示 - Rust 1.89 特性展示");
-    println!("🚀 Blockchain Application Demo - Rust 1.89 Features Showcase");
+    println!("🚀 区块链应用演示 - Rust 最新特性展示");
+    println!("🚀 Blockchain Application Demo - Latest Rust Features Showcase");
     println!();
 
-    // 演示 Rust 1.89 特性
-    demonstrate_rust_189_features();
+    // 演示 Rust 特性
+    demonstrate_rust_features();
+
+    // 演示高级功能
+    demonstrate_advanced_features();
 
     // 交互式区块链演示
     interactive_blockchain_demo();
 }
 
-/// 演示 Rust 1.89 特性
-/// Demonstrate Rust 1.89 features
-fn demonstrate_rust_189_features() {
+/// 演示 Rust 特性
+/// Demonstrate Rust features
+fn demonstrate_rust_features() {
     println!("📋 Rust 1.89 特性演示");
     println!("📋 Rust 1.89 Features Demo");
     println!();
@@ -211,4 +234,201 @@ fn view_chain_info(blockchain: &Blockchain) {
             "❌ 否"
         }
     );
+}
+
+/// 演示高级功能
+/// Demonstrate advanced features
+fn demonstrate_advanced_features() {
+    println!("🔬 高级功能演示");
+    println!("🔬 Advanced Features Demo");
+    println!();
+
+    // 演示高级密码学功能
+    #[cfg(feature = "crypto-advanced")]
+    {
+        println!("1️⃣ 高级密码学功能 (Advanced Cryptography)");
+        demonstrate_advanced_cryptography();
+    }
+
+    // 演示智能合约功能
+    #[cfg(feature = "smart-contracts")]
+    {
+        println!("2️⃣ 智能合约引擎 (Smart Contract Engine)");
+        demonstrate_smart_contracts();
+    }
+
+    // 演示 P2P 网络功能
+    #[cfg(feature = "p2p")]
+    {
+        println!("3️⃣ P2P 网络功能 (P2P Network)");
+        demonstrate_p2p_network();
+    }
+
+    println!();
+}
+
+/// 演示高级密码学功能
+#[cfg(feature = "crypto-advanced")]
+fn demonstrate_advanced_cryptography() {
+    use advanced_cryptography_simple::*;
+
+    // 演示多种哈希算法
+    let data = b"Hello, Advanced Blockchain!";
+    
+    let sha256_hash = AdvancedHash::hash(data, HashAlgorithm::Sha256).unwrap();
+    let sha512_hash = AdvancedHash::hash(data, HashAlgorithm::Sha512).unwrap();
+    
+    println!("   SHA256: {}", sha256_hash.to_hex());
+    println!("   SHA512: {}", sha512_hash.to_hex());
+
+    // 演示密钥生成和签名
+    let secp_key_pair = AdvancedKeyPair::generate("secp256k1").unwrap();
+    let ed_key_pair = AdvancedKeyPair::generate("ed25519").unwrap();
+    
+    let message = b"Sign this message";
+    
+    let secp_signature = AdvancedSignature::sign(message, &secp_key_pair).unwrap();
+    let ed_signature = AdvancedSignature::sign(message, &ed_key_pair).unwrap();
+    
+    println!("   Secp256k1 签名验证: {}", secp_signature.verify(message).unwrap());
+    println!("   Ed25519 签名验证: {}", ed_signature.verify(message).unwrap());
+
+    // 演示地址生成
+    let bitcoin_addr = AddressGenerator::generate_bitcoin_address(&secp_key_pair).unwrap();
+    let ethereum_addr = AddressGenerator::generate_ethereum_address(&secp_key_pair).unwrap();
+    
+    println!("   比特币地址: {}", bitcoin_addr);
+    println!("   以太坊地址: {}", ethereum_addr);
+
+    // 演示 Merkle 树
+    let merkle_data = vec![
+        b"data1".to_vec(),
+        b"data2".to_vec(),
+        b"data3".to_vec(),
+        b"data4".to_vec(),
+    ];
+    
+    let merkle_tree = MerkleTree::new(merkle_data, HashAlgorithm::Sha256).unwrap();
+    let proof = merkle_tree.generate_proof(0).unwrap();
+    let leaf = &merkle_tree.leaves[0];
+    let is_valid = merkle_tree.verify_proof(leaf, &proof, 0).unwrap();
+    
+    println!("   Merkle 树根: {}", merkle_tree.root.as_ref().unwrap().to_hex());
+    println!("   Merkle 证明验证: {}", is_valid);
+    println!();
+}
+
+/// 演示智能合约功能
+#[cfg(feature = "smart-contracts")]
+fn demonstrate_smart_contracts() {
+    use smart_contract_engine::*;
+
+    let mut engine = SmartContractEngine::new();
+    
+    let interface = ContractInterface {
+        name: "DemoContract".to_string(),
+        methods: vec![
+            ContractMethod {
+                name: "get_balance".to_string(),
+                inputs: vec![],
+                outputs: vec![ContractParameter {
+                    name: "balance".to_string(),
+                    param_type: "u64".to_string(),
+                }],
+                payable: false,
+                constant: true,
+            },
+            ContractMethod {
+                name: "transfer".to_string(),
+                inputs: vec![
+                    ContractParameter {
+                        name: "to".to_string(),
+                        param_type: "address".to_string(),
+                    },
+                    ContractParameter {
+                        name: "amount".to_string(),
+                        param_type: "u64".to_string(),
+                    },
+                ],
+                outputs: vec![ContractParameter {
+                    name: "success".to_string(),
+                    param_type: "bool".to_string(),
+                }],
+                payable: false,
+                constant: false,
+            },
+        ],
+        events: vec![],
+    };
+
+    // 注意：这里使用空的 WASM 代码，实际应用中需要有效的 WASM 字节码
+    let wasm_code = vec![0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00]; // 最小 WASM 模块
+    
+    match engine.deploy_contract(wasm_code, "alice".to_string(), interface, 1000) {
+        Ok(address) => {
+            println!("   ✅ 智能合约部署成功: {}", address);
+            
+            let context = ExecutionContext {
+                caller: "alice".to_string(),
+                value: 0,
+                gas_limit: 10000,
+                gas_used: 0,
+                block_height: 1,
+                timestamp: 1234567890,
+                contract_address: address.clone(),
+            };
+            
+            // 尝试调用合约方法
+            let result = engine.call_contract(&address, "get_balance", &[], context);
+            match result {
+                Ok(exec_result) => {
+                    println!("   📊 合约执行结果: 成功={}, Gas消耗={}", 
+                        exec_result.success, exec_result.gas_used);
+                }
+                Err(e) => {
+                    println!("   ⚠️ 合约执行失败 (预期): {}", e);
+                }
+            }
+        }
+        Err(e) => {
+            println!("   ⚠️ 智能合约部署失败 (预期): {}", e);
+        }
+    }
+    
+    println!();
+}
+
+/// 演示 P2P 网络功能
+#[cfg(feature = "p2p")]
+fn demonstrate_p2p_network() {
+    use p2p_network::*;
+
+    let message_handler = Arc::new(DefaultMessageHandler);
+    
+    let node = P2PNode::new(
+        "demo_node".to_string(),
+        "1.0.0".to_string(),
+        vec!["blockchain".to_string(), "smart_contracts".to_string()],
+        message_handler,
+    );
+    
+    // 演示消息创建
+    let handshake_msg = NetworkMessage::new(MessageType::Handshake(HandshakeMessage {
+        version: "1.0.0".to_string(),
+        node_id: "demo_node".to_string(),
+        capabilities: vec!["blockchain".to_string()],
+        timestamp: 1234567890,
+    }));
+    
+    let serialized = handshake_msg.serialize().unwrap();
+    let deserialized = NetworkMessage::deserialize(&serialized).unwrap();
+    
+    println!("   📨 消息序列化/反序列化测试: {}", 
+        handshake_msg.id == deserialized.id);
+    println!("   🔗 节点ID: {}", node.node_id);
+    println!("   📋 支持的功能: {:?}", node.capabilities);
+    println!("   🌐 对等节点数量: {}", 
+        tokio::runtime::Handle::current().block_on(node.get_connected_peer_count()));
+    
+    println!();
 }
