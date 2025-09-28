@@ -5,7 +5,6 @@
 
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256, Sha512};
-use std::collections::HashMap;
 use thiserror::Error;
 
 /// 密码学错误类型
@@ -67,6 +66,8 @@ impl AdvancedHash {
 
     /// 从十六进制字符串创建
     /// Create from hexadecimal string
+    #[allow(dead_code)]
+    #[allow(unused_variables)]
     pub fn from_hex(hex_str: &str, algorithm: HashAlgorithm) -> Result<Self, CryptoError> {
         let data = hex::decode(hex_str).map_err(|_| CryptoError::InvalidInput)?;
         Ok(Self { algorithm, data })
@@ -88,11 +89,11 @@ impl AdvancedKeyPair {
     pub fn generate(algorithm: &str) -> Result<Self, CryptoError> {
         use rand::Rng;
         
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         
         // 简化的密钥生成
-        let private_key: Vec<u8> = (0..32).map(|_| rng.random()).collect();
-        let public_key: Vec<u8> = (0..32).map(|_| rng.random()).collect();
+        let private_key: Vec<u8> = (0..32).map(|_| rng.random::<u8>()).collect();
+        let public_key: Vec<u8> = (0..32).map(|_| rng.random::<u8>()).collect();
         
         Ok(Self {
             algorithm: algorithm.to_string(),

@@ -4,9 +4,9 @@
 //! Demonstrates the effectiveness of blockchain performance optimization techniques
 
 use blockchain::*;
-use blockchain::performance::*;
-//use blockchain::simple_blockchain::*;
 use std::time::{Duration, Instant};
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
 
 fn main() {
     println!("🚀 区块链性能优化演示");
@@ -312,4 +312,280 @@ fn stress_test() {
     let total_time = start.elapsed();
     println!("   - 压力测试总耗时: {:?}", total_time);
     println!("   - 链长度: {}", blockchain.get_chain_length());
+}
+
+// ===== 性能优化相关的结构体和实现 =====
+
+/// 缓存管理器
+pub struct CacheManager {
+    cache: Arc<Mutex<HashMap<String, (Vec<u8>, Instant)>>>,
+    max_size: usize,
+    ttl: Duration,
+    hits: Arc<Mutex<u64>>,
+    misses: Arc<Mutex<u64>>,
+}
+
+impl CacheManager {
+    pub fn new(max_size: usize, ttl: Duration) -> Self {
+        Self {
+            cache: Arc::new(Mutex::new(HashMap::new())),
+            max_size,
+            ttl,
+            hits: Arc::new(Mutex::new(0)),
+            misses: Arc::new(Mutex::new(0)),
+        }
+    }
+
+    pub fn set(&self, key: String, value: Vec<u8>) {
+        let mut cache = self.cache.lock().unwrap();
+        if cache.len() >= self.max_size {
+            // 简单的LRU实现：移除最旧的项
+            if let Some(oldest_key) = cache.keys().next().cloned() {
+                cache.remove(&oldest_key);
+            }
+        }
+        cache.insert(key, (value, Instant::now()));
+    }
+
+    pub fn get(&self, key: &str) -> Option<Vec<u8>> {
+        let mut cache = self.cache.lock().unwrap();
+        if let Some((value, timestamp)) = cache.get(key) {
+            if timestamp.elapsed() < self.ttl {
+                *self.hits.lock().unwrap() += 1;
+                return Some(value.clone());
+            } else {
+                cache.remove(key);
+            }
+        }
+        *self.misses.lock().unwrap() += 1;
+        None
+    }
+
+    pub fn size(&self) -> usize {
+        self.cache.lock().unwrap().len()
+    }
+
+    pub fn hit_rate(&self) -> f64 {
+        let hits = *self.hits.lock().unwrap();
+        let misses = *self.misses.lock().unwrap();
+        if hits + misses == 0 {
+            0.0
+        } else {
+            hits as f64 / (hits + misses) as f64
+        }
+    }
+}
+
+/// 内存池
+pub struct MemoryPool {
+    transactions: Arc<Mutex<Vec<Transaction>>>,
+    max_size: usize,
+    performance_stats: Arc<Mutex<HashMap<String, PerformanceMetric>>>,
+}
+
+#[derive(Debug, Clone)]
+pub struct PerformanceMetric {
+    pub count: u64,
+    pub total_time: Duration,
+    pub avg_time: Duration,
+    pub min_time: Duration,
+    pub max_time: Duration,
+}
+
+impl MemoryPool {
+    pub fn new(max_size: usize) -> Self {
+        Self {
+            transactions: Arc::new(Mutex::new(Vec::new())),
+            max_size,
+            performance_stats: Arc::new(Mutex::new(HashMap::new())),
+        }
+    }
+
+    pub fn add_transaction(&self, transaction: Transaction) -> Result<(), String> {
+        let start = Instant::now();
+        let mut transactions = self.transactions.lock().unwrap();
+        
+        if transactions.len() >= self.max_size {
+            return Err("内存池已满".to_string());
+        }
+        
+        transactions.push(transaction);
+        let elapsed = start.elapsed();
+        
+        // 记录性能指标
+        self.record_metric("add_transaction", elapsed);
+        
+        Ok(())
+    }
+
+    pub fn get_transactions(&self, count: usize) -> Vec<Transaction> {
+        let start = Instant::now();
+        let mut transactions = self.transactions.lock().unwrap();
+        
+        let len = transactions.len();
+        let result = transactions.drain(..count.min(len)).collect();
+        let elapsed = start.elapsed();
+        
+        // 记录性能指标
+        self.record_metric("get_transactions", elapsed);
+        
+        result
+    }
+
+    pub fn size(&self) -> usize {
+        self.transactions.lock().unwrap().len()
+    }
+
+    fn record_metric(&self, operation: &str, duration: Duration) {
+        let mut stats = self.performance_stats.lock().unwrap();
+        let metric = stats.entry(operation.to_string()).or_insert(PerformanceMetric {
+            count: 0,
+            total_time: Duration::ZERO,
+            avg_time: Duration::ZERO,
+            min_time: Duration::MAX,
+            max_time: Duration::ZERO,
+        });
+        
+        metric.count += 1;
+        metric.total_time += duration;
+        metric.avg_time = metric.total_time / metric.count as u32;
+        metric.min_time = metric.min_time.min(duration);
+        metric.max_time = metric.max_time.max(duration);
+    }
+
+    pub fn get_performance_stats(&self) -> HashMap<String, PerformanceMetric> {
+        self.performance_stats.lock().unwrap().clone()
+    }
+}
+
+/// 性能监控器
+pub struct PerformanceMonitor {
+    metrics: Arc<Mutex<HashMap<String, PerformanceMetric>>>,
+    start_time: Instant,
+}
+
+impl PerformanceMonitor {
+    pub fn new() -> Self {
+        Self {
+            metrics: Arc::new(Mutex::new(HashMap::new())),
+            start_time: Instant::now(),
+        }
+    }
+
+    pub fn record_operation<F, R>(&self, operation: &str, f: F) -> R
+    where
+        F: FnOnce() -> R,
+    {
+        let start = Instant::now();
+        let result = f();
+        let duration = start.elapsed();
+        
+        self.record_metric(operation, duration);
+        result
+    }
+
+    fn record_metric(&self, operation: &str, duration: Duration) {
+        let mut metrics = self.metrics.lock().unwrap();
+        let metric = metrics.entry(operation.to_string()).or_insert(PerformanceMetric {
+            count: 0,
+            total_time: Duration::ZERO,
+            avg_time: Duration::ZERO,
+            min_time: Duration::MAX,
+            max_time: Duration::ZERO,
+        });
+        
+        metric.count += 1;
+        metric.total_time += duration;
+        metric.avg_time = metric.total_time / metric.count as u32;
+        metric.min_time = metric.min_time.min(duration);
+        metric.max_time = metric.max_time.max(duration);
+    }
+
+    pub fn get_all_metrics(&self) -> HashMap<String, PerformanceMetric> {
+        self.metrics.lock().unwrap().clone()
+    }
+
+    pub fn get_uptime(&self) -> Duration {
+        self.start_time.elapsed()
+    }
+}
+
+/// 优化的区块链
+pub struct OptimizedBlockchain {
+    blockchain: Blockchain,
+    cache: CacheManager,
+    memory_pool: MemoryPool,
+    monitor: PerformanceMonitor,
+}
+
+impl OptimizedBlockchain {
+    pub fn new(difficulty: usize, cache_size: usize, pool_size: usize) -> Self {
+        Self {
+            blockchain: Blockchain::new(difficulty),
+            cache: CacheManager::new(cache_size, Duration::from_secs(60)),
+            memory_pool: MemoryPool::new(pool_size),
+            monitor: PerformanceMonitor::new(),
+        }
+    }
+
+    pub fn add_transaction(&mut self, transaction: Transaction) -> Result<(), String> {
+        self.monitor.record_operation("add_transaction", || {
+            self.blockchain.add_transaction(transaction)
+        })
+    }
+
+    pub fn mine_block_optimized(&mut self, miner_address: String) -> Result<(), String> {
+        self.monitor.record_operation("mine_block", || {
+            self.blockchain.mine_pending_transactions(miner_address)
+        })
+    }
+
+    pub fn get_balance_cached(&self, address: &str) -> u64 {
+        let cache_key = format!("balance_{}", address);
+        
+        if let Some(cached_balance) = self.cache.get(&cache_key) {
+            if let Ok(balance) = String::from_utf8(cached_balance) {
+                if let Ok(balance_num) = balance.parse::<u64>() {
+                    return balance_num;
+                }
+            }
+        }
+        
+        let balance = self.blockchain.get_balance(address);
+        self.cache.set(cache_key, balance.to_string().into_bytes());
+        balance
+    }
+
+    pub fn get_performance_report(&self) -> PerformanceReport {
+        PerformanceReport {
+            uptime: self.monitor.get_uptime(),
+            cache_stats: CacheStats {
+                size: self.cache.size(),
+                hit_rate: self.cache.hit_rate(),
+            },
+            memory_pool_stats: MemoryPoolStats {
+                size: self.memory_pool.size(),
+            },
+            operations: self.monitor.get_all_metrics(),
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct PerformanceReport {
+    pub uptime: Duration,
+    pub cache_stats: CacheStats,
+    pub memory_pool_stats: MemoryPoolStats,
+    pub operations: HashMap<String, PerformanceMetric>,
+}
+
+#[derive(Debug)]
+pub struct CacheStats {
+    pub size: usize,
+    pub hit_rate: f64,
+}
+
+#[derive(Debug)]
+pub struct MemoryPoolStats {
+    pub size: usize,
 }

@@ -12,7 +12,9 @@ mod types;
 mod monitoring;
 mod cli;
 mod consensus;
+#[cfg(feature = "advanced")]
 mod performance;
+#[cfg(feature = "advanced")]
 mod security;
 
 // 新增的高级模块

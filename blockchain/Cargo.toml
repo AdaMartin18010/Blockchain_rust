@@ -4,12 +4,12 @@ version = "0.1.0"
 edition = "2024"
 resolver = "3"
 authors = ["Rust Blockchain Team"]
-description = "区块链应用演示 - 展示 Rust 1.89 特性在区块链开发中的应用"
+description = "区块链应用演示 - 展示 Rust 1.90 特性在区块链开发中的应用"
 license = "MIT"
 repository = "https://github.com/rust-lang/blockchain"
 keywords = ["blockchain", "rust", "cryptocurrency", "consensus"]
 categories = ["cryptography", "algorithms", "data-structures"]
-rust-version = "1.89"
+rust-version = "1.90"
 
 [dependencies]
 serde = { workspace = true }
@@ -21,52 +21,89 @@ rand = { workspace = true }
 tokio = { workspace = true }
 chrono = { workspace = true }
 
-# 区块链专用依赖
-secp256k1 = "0.31"
-ed25519-dalek = "2.1"
-blake2 = "0.10"
-hex = "0.4"
+# 区块链专用依赖 - 2025年1月最新稳定版本
+secp256k1 = "0.31.1"
+ed25519-dalek = "2.2.0"
+blake2 = "0.11.0-rc.2"
+hex = "0.4.3"
 ripemd = "0.2.0-rc.1"
 
-# CLI 支持
-clap = { version = "4.4", features = ["derive"] }
-uuid = { version = "1.6", features = ["v4"] }
+# Web3 和区块链生态库 - 2025年1月最新版本
+alloy = { version = "1.0.36", features = ["full"], optional = true }
+ethabi = { version = "18.0.0", optional = true }
+rlp = { version = "0.6.0", optional = true }
+keccak = { version = "0.1.0", optional = true }
 
-# 网络和异步
-tokio-tungstenite = { version = "0.24", optional = true }
-async-trait = "0.1"
-futures = "0.3"
-crossbeam-channel = { version = "0.5", optional = true }
-parking_lot = "0.12"
-rayon = "1.8"
+# 高级密码学库 - 2025年1月最新版本
+curve25519-dalek = { version = "4.1.2", optional = true }
+x25519-dalek = { version = "2.0.1", optional = true }
+chacha20poly1305 = { version = "0.10.1", optional = true }
+aes-gcm = { version = "0.10.3", optional = true }
+ring = { version = "0.17.14", optional = true }
+pbkdf2 = "0.12.2"
 
-# 数据库支持
-sled = { version = "0.34", optional = true }
-rocksdb = { version = "0.22", optional = true }
+# CLI 支持 - 2025年1月最新版本
+clap = { version = "4.5.4", features = ["derive", "env"] }
+uuid = { version = "1.18.1", features = ["v4", "serde"] }
+console = "0.16.0"
+indicatif = "0.18.0"
 
-# 序列化增强
-rmp-serde = "1.1"
-cbor4ii = "1.1"
+# 网络和异步 - 2025年1月最新版本
+tokio-tungstenite = { version = "0.28.0", optional = true }
+async-trait = "0.1.89"
+futures = "0.3.31"
+crossbeam-channel = { version = "0.5.12", optional = true }
+parking_lot = "0.12.4"
+rayon = "1.11.0"
 
-# 密码学增强
-ring = { version = "0.17", optional = true }
-aes-gcm = { version = "0.10", optional = true }
-chacha20poly1305 = { version = "0.10", optional = true }
+# 日志支持
+log = "0.4.28"
 
-# 智能合约支持 (暂时注释掉，等待依赖版本兼容)
-# wasmtime = { version = "20.0", optional = true }
-# wasmer = { version = "4.4", optional = true }
+# 高性能网络库 - 2025年1月最新版本
+quinn = { version = "0.11.0", optional = true }
+libp2p = { version = "0.56.0", optional = true, features = ["tcp", "yamux", "noise", "mdns"] }
 
-# Rust 1.89+ 特性支持
+# 数据库支持 - 2025年1月最新版本
+sled = { version = "0.34.7", optional = true }
+rocksdb = { version = "0.24.0", optional = true }
+
+# 现代数据库选择 - 2025年1月最新版本
+redb = { version = "1.1.0", optional = true }
+heed = { version = "0.21.0", optional = true }
+
+# 序列化增强 - 2025年1月最新版本
+rmp-serde = "1.3.0"
+cbor4ii = "1.1.0"
+
+# 高性能序列化 - 2025年1月最新版本
+borsh = "1.5.0"
+postcard = "1.1.0"
+
+# 密码学增强 - 已移至上方统一管理
+
+# 智能合约支持 - 2025年1月最新版本
+wasmtime = { version = "21.0.0", optional = true }
+
+# 智能合约开发框架 - 2025年1月最新版本
+ink = { version = "5.1.0", optional = true }
+
+# 高性能异步运行时 - 实验性支持 (仅Linux)
+glommio = { version = "0.8.0", optional = true }
+
+# Rust 1.90+ 特性支持
 [features]
-default = ["basic"]
-basic = []  # 基础区块链功能
-advanced = ["ffi", "smart-contracts", "p2p", "database"]  # 高级功能
+default = ["basic", "crypto-advanced"]
+basic = ["crypto-advanced"]  # 基础区块链功能默认启用加密算法
+advanced = ["ffi", "smart-contracts", "p2p", "web3", "libp2p"]  # 高级功能（暂时禁用database）
 ffi = []  # 启用 FFI 功能
 smart-contracts = []  # 智能合约支持 (暂时禁用 WASM 运行时)
-p2p = ["tokio-tungstenite", "crossbeam-channel"]  # P2P 网络
-database = ["sled", "rocksdb"]  # 数据库支持
-crypto-advanced = ["ring", "aes-gcm", "chacha20poly1305"]  # 高级密码学
+p2p = ["tokio-tungstenite", "crossbeam-channel", "libp2p"]  # P2P 网络
+database = ["sled", "rocksdb", "redb"]  # 数据库支持
+crypto-advanced = ["ring", "aes-gcm", "chacha20poly1305", "curve25519-dalek", "x25519-dalek"]  # 高级密码学
+web3 = ["alloy", "ethabi", "rlp"]  # Web3 支持
+quinn = ["dep:quinn"]  # QUIC 网络协议
+modern-db = ["redb", "heed"]  # 现代数据库选择
+glommio-runtime = ["glommio"]  # 高性能异步运行时 (实验性)
 
 # 开发依赖
 [dev-dependencies]
@@ -83,16 +120,8 @@ name = "rust_189_demo"
 path = "examples/rust_189_demo.rs"
 
 [[example]]
-name = "advanced_blockchain"
-path = "examples/advanced_blockchain.rs"
-
-[[example]]
 name = "demo"
 path = "examples/demo.rs"
-
-[[example]]
-name = "full_demo"
-path = "examples/full_demo.rs"
 
 [[example]]
 name = "simple_demo"
@@ -114,3 +143,14 @@ path = "examples/performance_demo.rs"
 [[example]]
 name = "security_demo"
 path = "examples/security_demo.rs"
+required-features = ["advanced"]
+
+[[example]]
+name = "glommio_demo"
+path = "examples/glommio_demo.rs"
+required-features = ["glommio-runtime"]
+
+[[example]]
+name = "architecture_demo"
+path = "examples/architecture_demo.rs"
+required-features = ["advanced"]
