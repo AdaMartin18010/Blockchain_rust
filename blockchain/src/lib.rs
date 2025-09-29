@@ -23,6 +23,9 @@ pub mod smart_contracts;
 // 工具模块
 pub mod utils;
 
+// 文档模块
+pub mod docs;
+
 // 兼容性模块（保留原有接口）
 pub mod cryptography;
 pub mod network;

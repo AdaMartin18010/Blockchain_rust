@@ -42,8 +42,8 @@ impl ProofOfStake {
         }
 
         // 简化的随机选择逻辑
-        let mut rng = rand::rng();
         use rand::Rng;
+        let mut rng = rand::rng();
         let random_value: u64 = rng.random_range(0..total_stake);
         
         let mut current_stake = 0u64;
