@@ -6,13 +6,46 @@ A comprehensive blockchain implementation in Rust
 
 ## 目录
 
-- [core](#core)
-- [network](#network)
-- [algorithms](#algorithms)
-- [cryptography](#cryptography)
-- [consensus](#consensus)
-- [smart_contracts](#smart_contracts)
-- [storage](#storage)
+- [Blockchain Rust Library](#blockchain-rust-library)
+  - [目录](#目录)
+  - [core](#core)
+    - [结构体](#结构体)
+      - [Block](#block)
+      - [Transaction](#transaction)
+      - [MerkleTree](#merkletree)
+  - [network](#network)
+    - [结构体1](#结构体1)
+      - [P2PNetwork](#p2pnetwork)
+    - [函数](#函数)
+      - [start](#start)
+  - [algorithms](#algorithms)
+    - [结构体2](#结构体2)
+      - [ConsensusAlgorithms](#consensusalgorithms)
+    - [函数1](#函数1)
+      - [calculate\_difficulty](#calculate_difficulty)
+  - [cryptography](#cryptography)
+    - [结构体3](#结构体3)
+      - [HashEngine](#hashengine)
+      - [SignatureEngine](#signatureengine)
+    - [函数3](#函数3)
+      - [sha256](#sha256)
+      - [blake2b](#blake2b)
+      - [sign](#sign)
+  - [consensus](#consensus)
+    - [结构体4](#结构体4)
+      - [ProofOfWork](#proofofwork)
+    - [函数4](#函数4)
+      - [mine\_block](#mine_block)
+  - [smart\_contracts](#smart_contracts)
+    - [结构体5](#结构体5)
+      - [VirtualMachine](#virtualmachine)
+    - [函数5](#函数5)
+      - [execute](#execute)
+  - [storage](#storage)
+    - [结构体6](#结构体6)
+      - [BlockStorage](#blockstorage)
+    - [函数6](#函数6)
+      - [store\_block](#store_block)
 
 ## core
 
@@ -29,7 +62,7 @@ Represents a block in the blockchain
 | 名称 | 类型 | 描述 |
 |------|------|------|
 | header | BlockHeader | Block header containing metadata |
-| transactions | Vec<Transaction> | List of transactions in the block |
+| transactions | `Vec<Transaction>` | List of transactions in the block |
 
 #### Transaction
 
@@ -40,8 +73,8 @@ Represents a blockchain transaction
 | 名称 | 类型 | 描述 |
 |------|------|------|
 | version | u32 | Transaction version |
-| inputs | Vec<TxInput> | Transaction inputs |
-| outputs | Vec<TxOutput> | Transaction outputs |
+| inputs | `Vec<TxInput>` | Transaction inputs |
+| outputs | `Vec<TxOutput>` | Transaction outputs |
 
 #### MerkleTree
 
@@ -52,13 +85,13 @@ Merkle tree for efficient data verification
 | 名称 | 类型 | 描述 |
 |------|------|------|
 | root | MerkleNode | Root node of the tree |
-| leaves | Vec<MerkleNode> | Leaf nodes of the tree |
+| leaves | `Vec<MerkleNode>` | Leaf nodes of the tree |
 
 ## network
 
 P2P network communication components
 
-### 结构体
+### 结构体1
 
 #### P2PNetwork
 
@@ -92,13 +125,13 @@ network.start(8080).await?;
 
 Blockchain-specific algorithms and optimizations
 
-### 结构体
+### 结构体2
 
 #### ConsensusAlgorithms
 
 Consensus-related algorithms
 
-### 函数
+### 函数1
 
 #### calculate_difficulty
 
@@ -126,7 +159,7 @@ let difficulty = algorithms.calculate_difficulty(100, 600, 550);
 
 Cryptographic operations and algorithms
 
-### 结构体
+### 结构体3
 
 #### HashEngine
 
@@ -136,7 +169,7 @@ Hash function engine supporting multiple algorithms
 
 Digital signature engine supporting multiple algorithms
 
-### 函数
+### 函数3
 
 #### sha256
 
@@ -204,7 +237,7 @@ let signature = engine.sign(data, &private_key, "ed25519")?;
 
 Blockchain consensus algorithms
 
-### 结构体
+### 结构体4
 
 #### ProofOfWork
 
@@ -216,7 +249,7 @@ Proof of Work consensus algorithm
 |------|------|------|
 | difficulty | u32 | Mining difficulty level |
 
-### 函数
+### 函数4
 
 #### mine_block
 
@@ -244,13 +277,13 @@ pow.mine_block(&mut block).await?;
 
 Smart contract execution environment
 
-### 结构体
+### 结构体5
 
 #### VirtualMachine
 
 Smart contract virtual machine
 
-### 函数
+### 函数5
 
 #### execute
 
@@ -279,13 +312,13 @@ let result = vm.execute(&bytecode, &input).await?;
 
 Blockchain data storage components
 
-### 结构体
+### 结构体6
 
 #### BlockStorage
 
 Block storage and retrieval system
 
-### 函数
+### 函数6
 
 #### store_block
 
@@ -309,4 +342,3 @@ Result of storage operation
 ```rust
 storage.store_block(1, block).await?;
 ```
-

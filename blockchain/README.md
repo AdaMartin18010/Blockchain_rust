@@ -2,7 +2,6 @@
 
 [![Rust](https://img.shields.io/badge/rust-1.90+-orange.svg)](https://www.rust-lang.org/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
 
 一个用Rust语言实现的完整区块链系统，展示了现代区块链技术的核心组件和功能。
 
@@ -17,28 +16,33 @@
 ## 📦 核心组件
 
 ### 🔐 密码学组件
+
 - **哈希算法**: SHA256, SHA512, Blake2b, Blake2s
 - **签名算法**: ECDSA (secp256k1), Ed25519
 - **加密算法**: AES-GCM, ChaCha20-Poly1305
 
 ### 🌐 网络组件
+
 - **P2P网络**: 点对点连接和通信
 - **消息路由**: 高效的消息广播和路由
 - **节点管理**: 节点状态跟踪和连接管理
 
 ### 💾 存储组件
+
 - **区块存储**: 持久化区块数据
 - **交易存储**: 交易池和确认状态管理
 - **状态存储**: 状态历史和快照功能
 - **Merkle存储**: 树版本管理和证明缓存
 
 ### ⚡ 共识机制
+
 - **PoW**: 工作量证明算法
 - **PoS**: 权益证明算法
 - **DPoS**: 委托权益证明算法
 - **PBFT**: 实用拜占庭容错算法
 
 ### 🤖 智能合约
+
 - **虚拟机**: 字节码执行环境
 - **编译器**: 源代码编译支持
 - **运行时**: 合约执行环境
@@ -115,7 +119,7 @@ cargo bench
 
 ## 🏗️ 项目结构
 
-```
+```text
 blockchain/
 ├── src/
 │   ├── core/                 # 核心类型
